@@ -103,7 +103,8 @@ dt label {
   font-weight: bold;
 }
 
-dd input[type="text"] {
+dd input[type="text"],
+dd input[type="tel"] {
   border: 1px solid #a4a4a4;
   border-radius: 8px;
   box-sizing: border-box;

@@ -1,0 +1,24 @@
+extends layout 
+
+block content 
+  form(action="/contacts/new" method="post")
+    fieldset
+      dl
+        dt
+          label(for="firstName") First Name:
+        dd
+          input(type="text" id="firstName" name="firstName" value="")
+
+      dl
+        dt
+          label(for="lastName") Last Name:
+        dd
+          input(type="text" id="lastName" name="lastName" value="")
+      dl
+        dt
+          label(for="phoneNumber") Phone Number
+        dd
+          input(type="tel" id="phoneNumber" name="phoneNumber" value="" placeholder="###-###-####")
+    fieldset
+      input(type="submit" class="cancel" value="Save")
+      button(formaction="/contacts" formmethod="get" class="cancel") Cancel
