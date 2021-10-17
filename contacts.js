@@ -45,6 +45,7 @@ app.set("views", "./views");
 app.set("view engine", "pug");
 
 app.use(express.static("public"));
+// tells express to expect form data in URL-encoded format.
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan("common"));
 
@@ -63,9 +64,7 @@ app.get("/contacts/new", (req, res) => {
 });
 
 app.post("/contacts/new", (req, res) => {
-  console.log(req.body);
   contactData.push({ ...req.body });
-
   res.redirect("/contacts");
 });
 
