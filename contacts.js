@@ -70,15 +70,29 @@ app.post(
     next();
   },
   (req, res, next) => {
-    if (req.body.firstName.length === 0) {
+    const firstName = req.body.firstName;
+    if (firstName === 0) {
       res.locals.errorMessages.push("First name is required.");
+    }
+
+    if (firstName.length > 25) {
+      res.locals.errorMessages.push(
+        "First name cannot be more than 25 characters"
+      );
     }
 
     next();
   },
   (req, res, next) => {
-    if (req.body.lastName.length === 0) {
+    const lastName = req.body.lastName;
+    if (lastName === 0) {
       res.locals.errorMessages.push("Last name is required.");
+    }
+
+    if (lastName.length > 25) {
+      res.locals.errorMessages.push(
+        "Last name cannot be more than 25 characters"
+      );
     }
 
     next();
