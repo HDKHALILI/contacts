@@ -64,21 +64,6 @@ app.get("/contacts/new", (req, res) => {
   res.render("new-contact");
 });
 
-function isContactInContacts(firstName, lastName, contacts) {
-  firstName = firstName.toLowerCase();
-  lastName = lastName.toLowerCase();
-  for (let index = 0; index < contacts.length; index += 1) {
-    const currentContact = contacts[index];
-    const currentFirstName = currentContact.firstName.toLowerCase();
-    const currentLastName = currentContact.lastName.toLowerCase();
-    if (firstName === currentFirstName && lastName === currentLastName) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 app.post(
   "/contacts/new",
   [
