@@ -64,32 +64,27 @@ app.get("/contacts/new", (req, res) => {
   res.render("new-contact");
 });
 
+const validateName = (name, whichName) => {
+  return body(name)
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage(`${whichName} name is required.`)
+    .bail()
+    .isLength({ max: 25 })
+    .withMessage(
+      `${whichName} name is too long. Maximum length is 25 characters.`
+    )
+    .isAlpha()
+    .withMessage(
+      `${whichName} name contains invalid characters. The name must be alphabetic.`
+    );
+};
+
 app.post(
   "/contacts/new",
   [
-    body("firstName")
-      .trim()
-      .isLength({ min: 1 })
-      .withMessage("First name is required.")
-      .bail()
-      .isLength({ max: 25 })
-      .withMessage("First name is too long. Maximum length is 25 characters.")
-      .isAlpha()
-      .withMessage(
-        "First name contains invalid characters. The name must be alphabetic."
-      ),
-
-    body("lastName")
-      .trim()
-      .isLength({ min: 1 })
-      .withMessage("Last name is required.")
-      .bail()
-      .isLength({ max: 25 })
-      .withMessage("Last name is too long. Maximum length is 25 characters.")
-      .isAlpha()
-      .withMessage(
-        "Last name contains invalid characters. The name must be alphabetic."
-      ),
+    validateName("firstName", "First"),
+    validateName("lastName", "Last"),
 
     body("phoneNumber")
       .trim()
