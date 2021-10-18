@@ -71,13 +71,19 @@ app.post(
   },
   (req, res, next) => {
     const firstName = req.body.firstName;
-    if (firstName === 0) {
+    if (firstName.length === 0) {
       res.locals.errorMessages.push("First name is required.");
     }
 
     if (firstName.length > 25) {
       res.locals.errorMessages.push(
-        "First name cannot be more than 25 characters"
+        "First name cannot be more than 25 characters."
+      );
+    }
+
+    if (!/^[a-zA-Z]+$/.test(firstName)) {
+      res.locals.errorMessages.push(
+        "First name can only contain alphabetic characters."
       );
     }
 
@@ -85,13 +91,19 @@ app.post(
   },
   (req, res, next) => {
     const lastName = req.body.lastName;
-    if (lastName === 0) {
+    if (lastName.length === 0) {
       res.locals.errorMessages.push("Last name is required.");
     }
 
     if (lastName.length > 25) {
       res.locals.errorMessages.push(
-        "Last name cannot be more than 25 characters"
+        "Last name cannot be more than 25 characters."
+      );
+    }
+
+    if (!/^[a-zA-Z]+$/.test(lastName)) {
+      res.locals.errorMessages.push(
+        "Last name can only contain alphabetic characters."
       );
     }
 
