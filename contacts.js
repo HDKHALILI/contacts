@@ -63,6 +63,21 @@ app.get("/contacts/new", (req, res) => {
   res.render("new-contact");
 });
 
+function isContactInContacts(firstName, lastName, contacts) {
+  firstName = firstName.toLowerCase();
+  lastName = lastName.toLowerCase();
+  for (let index = 0; index < contacts.length; index += 1) {
+    const currentContact = contacts[index];
+    const currentFirstName = currentContact.firstName.toLowerCase();
+    const currentLastName = currentContact.lastName.toLowerCase();
+    if (firstName === currentFirstName && lastName === currentLastName) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 app.post(
   "/contacts/new",
   (req, res, next) => {
@@ -70,7 +85,13 @@ app.post(
     next();
   },
   (req, res, next) => {
-    const firstName = req.body.firstName;
+    res.locals.firstName = req.body.firstName.trim();
+    res.locals.lastName = req.body.lastName.trim();
+    res.locals.phoneNumber = req.body.phoneNumber.trim();
+    next();
+  },
+  (req, res, next) => {
+    const firstName = res.locals.firstName;
     if (firstName.length === 0) {
       res.locals.errorMessages.push("First name is required.");
     } else if (firstName.length > 25) {
@@ -86,7 +107,7 @@ app.post(
     next();
   },
   (req, res, next) => {
-    const lastName = req.body.lastName;
+    const lastName = res.locals.lastName;
     if (lastName.length === 0) {
       res.locals.errorMessages.push("Last name is required.");
     } else if (lastName.length > 25) {
@@ -103,12 +124,23 @@ app.post(
   },
   (req, res, next) => {
     const phoneNumberPattern = /^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/;
-    const phoneNumber = req.body.phoneNumber;
+    const phoneNumber = res.locals.phoneNumber;
     if (phoneNumber.length === 0) {
       res.locals.errorMessages.push("Phone number is required.");
     } else if (!phoneNumber.match(phoneNumberPattern)) {
       res.locals.errorMessages.push(
         "Please enter a valid phone number with the pattern: ###-###-####"
+      );
+    }
+
+    next();
+  },
+  (req, res, next) => {
+    console.log("looking for duplicates");
+    const { firstName, lastName } = res.locals;
+    if (isContactInContacts(firstName, lastName, contactData)) {
+      res.locals.errorMessages.push(
+        "Contact already exist. Each contact must be unique."
       );
     }
 
@@ -125,9 +157,9 @@ app.post(
   },
   (req, res) => {
     contactData.push({
-      firstName: req.body.firstName.trim(),
-      lastName: req.body.lastName.trim(),
-      phoneNumber: req.body.phoneNumber.trim(),
+      firstName: res.locals.firstName.trim(),
+      lastName: res.locals.lastName.trim(),
+      phoneNumber: res.locals.phoneNumber.trim(),
     });
     res.redirect("/contacts");
   }
