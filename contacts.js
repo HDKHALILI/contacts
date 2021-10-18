@@ -100,7 +100,11 @@ app.post(
     }
   },
   (req, res) => {
-    contactData.push({ ...req.body });
+    contactData.push({
+      firstName: req.body.firstName.trim(),
+      lastName: req.body.lastName.trim(),
+      phoneNumber: req.body.phoneNumber.trim(),
+    });
     res.redirect("/contacts");
   }
 );
