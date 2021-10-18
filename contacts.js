@@ -102,8 +102,14 @@ app.post(
     next();
   },
   (req, res, next) => {
-    if (req.body.phoneNumber.length === 0) {
+    const phoneNumberPattern = /^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/;
+    const phoneNumber = req.body.phoneNumber;
+    if (phoneNumber.length === 0) {
       res.locals.errorMessages.push("Phone number is required.");
+    } else if (!phoneNumber.match(phoneNumberPattern)) {
+      res.locals.errorMessages.push(
+        "Please enter a valid phone number with the pattern: ###-###-####"
+      );
     }
 
     next();
