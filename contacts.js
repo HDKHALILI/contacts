@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+const { body, validationResult } = require("express-validator");
 
 const app = express();
 const contactData = [
@@ -80,90 +81,54 @@ function isContactInContacts(firstName, lastName, contacts) {
 
 app.post(
   "/contacts/new",
-  (req, res, next) => {
-    res.locals.errorMessages = [];
-    next();
-  },
-  (req, res, next) => {
-    res.locals.firstName = req.body.firstName.trim();
-    res.locals.lastName = req.body.lastName.trim();
-    res.locals.phoneNumber = req.body.phoneNumber.trim();
-    next();
-  },
-  (req, res, next) => {
-    const firstName = res.locals.firstName;
-    if (firstName.length === 0) {
-      res.locals.errorMessages.push("First name is required.");
-    } else if (firstName.length > 25) {
-      res.locals.errorMessages.push(
-        "First name cannot be more than 25 characters."
-      );
-    } else if (!/^[a-zA-Z]+$/.test(firstName)) {
-      res.locals.errorMessages.push(
-        "First name can only contain alphabetic characters."
-      );
-    }
+  [
+    body("firstName")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("First name is required.")
+      .bail()
+      .isLength({ max: 25 })
+      .withMessage("First name is too long. Maximum length is 25 characters.")
+      .isAlpha()
+      .withMessage(
+        "First name contains invalid characters. The name must be alphabetic."
+      ),
 
-    next();
-  },
-  (req, res, next) => {
-    const lastName = res.locals.lastName;
-    if (lastName.length === 0) {
-      res.locals.errorMessages.push("Last name is required.");
-    } else if (lastName.length > 25) {
-      res.locals.errorMessages.push(
-        "Last name cannot be more than 25 characters."
-      );
-    } else if (!/^[a-zA-Z]+$/.test(lastName)) {
-      res.locals.errorMessages.push(
-        "Last name can only contain alphabetic characters."
-      );
-    }
+    body("lastName")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Last name is required.")
+      .bail()
+      .isLength({ max: 25 })
+      .withMessage("Last name is too long. Maximum length is 25 characters.")
+      .isAlpha()
+      .withMessage(
+        "Last name contains invalid characters. The name must be alphabetic."
+      ),
 
-    next();
-  },
+    body("phoneNumber")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Phone number is required.")
+      .bail()
+      .matches(/^\d\d\d-\d\d\d-\d\d\d\d$/)
+      .withMessage("Invalid phone number format. Use ###-###-####"),
+  ],
   (req, res, next) => {
-    const phoneNumberPattern = /^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/;
-    const phoneNumber = res.locals.phoneNumber;
-    if (phoneNumber.length === 0) {
-      res.locals.errorMessages.push("Phone number is required.");
-    } else if (!phoneNumber.match(phoneNumberPattern)) {
-      res.locals.errorMessages.push(
-        "Please enter a valid phone number with the pattern: ###-###-####"
-      );
-    }
-
-    next();
-  },
-  (req, res, next) => {
-    console.log("looking for duplicates");
-    const { firstName, lastName } = res.locals;
-    if (isContactInContacts(firstName, lastName, contactData)) {
-      res.locals.errorMessages.push(
-        "Contact already exist. Each contact must be unique."
-      );
-    }
-
-    next();
-  },
-  (req, res, next) => {
-    if (res.locals.errorMessages.length > 0) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
       res.render("new-contact", {
-        errorMessages: res.locals.errorMessages,
-        firstName: res.locals.firstName,
-        lastName: res.locals.lastName,
-        phoneNumber: res.locals.phoneNumber,
+        errorMessages: errors.array().map(error => error.msg),
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        phoneNumber: req.body.phoneNumber,
       });
     } else {
       next();
     }
   },
   (req, res) => {
-    contactData.push({
-      firstName: res.locals.firstName.trim(),
-      lastName: res.locals.lastName.trim(),
-      phoneNumber: res.locals.phoneNumber.trim(),
-    });
+    contactData.push({ ...req.body });
     res.redirect("/contacts");
   }
 );
