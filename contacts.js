@@ -1,6 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
-const { body, validationResult } = require("express-validator");
+const { body, check, validationResult } = require("express-validator");
 const session = require("express-session");
 const store = require("connect-loki");
 const flash = require("express-flash");
@@ -118,10 +118,33 @@ const validateName = (name, whichName) => {
 
 app.post(
   "/contacts/new",
+  (req, res, next) => {
+    req.body.fullName = [];
+    next();
+  },
   [
     validateName("firstName", "First"),
     validateName("lastName", "Last"),
 
+    body(["firstName", "lastName"]).custom((name, { req }) => {
+      req.body.fullName.push(name);
+      return true;
+    }),
+    body("fullName").custom((fullName, { req }) => {
+      const contacts = req.session.contactData;
+      const newFullName = fullName.join(" ").toLowerCase();
+      const nameFound = contacts.find(({ firstName, lastName }) => {
+        const existingFullName = `${firstName.toLowerCase()} ${lastName.toLowerCase()}`;
+
+        return existingFullName === newFullName;
+      });
+
+      if (nameFound) {
+        throw new Error("Contact already exists.");
+      }
+
+      return true;
+    }),
     body("phoneNumber")
       .trim()
       .isLength({ min: 1 })
