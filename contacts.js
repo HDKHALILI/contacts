@@ -1,8 +1,11 @@
 const express = require("express");
 const morgan = require("morgan");
 const { body, validationResult } = require("express-validator");
+const session = require("express-session");
+const store = require("connect-loki");
 
 const app = express();
+const LokiStore = store(session);
 const contactData = [
   {
     firstName: "Mike",
@@ -42,6 +45,10 @@ const sortContacts = contacts => {
   });
 };
 
+const clone = object => {
+  return JSON.parse(JSON.stringify(object));
+};
+
 app.set("views", "./views");
 app.set("view engine", "pug");
 
@@ -49,6 +56,28 @@ app.use(express.static("public"));
 // tells express to expect form data in URL-encoded format.
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan("common"));
+app.use(
+  session({
+    cookie: {
+      httpOnly: true,
+      maxAge: 31 * 24 * 60 * 60 * 1000, // 31 days in milliseconds
+      path: "/",
+      secure: false,
+    },
+    name: "launch-school-contacts-manager-session-id",
+    resave: false,
+    saveUninitialized: true,
+    secret: "this is not very secure",
+    store: new LokiStore({}),
+  })
+);
+app.use((req, res, next) => {
+  if (!("contactData" in req.session)) {
+    req.session.contactData = clone(contactData);
+  }
+
+  next();
+});
 
 app.get("/", (req, res) => {
   res.redirect("/contacts");
@@ -56,7 +85,7 @@ app.get("/", (req, res) => {
 
 app.get("/contacts", (req, res) => {
   res.render("contacts", {
-    contacts: sortContacts(contactData),
+    contacts: sortContacts(req.session.contactData),
   });
 });
 
@@ -108,7 +137,7 @@ app.post(
     }
   },
   (req, res) => {
-    contactData.push({ ...req.body });
+    req.session.contactData.push({ ...req.body });
     res.redirect("/contacts");
   }
 );
