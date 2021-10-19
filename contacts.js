@@ -80,6 +80,11 @@ app.use((req, res, next) => {
 
   next();
 });
+app.use((req, res, next) => {
+  res.locals.flash = req.session.flash;
+  delete req.session.flash;
+  next();
+});
 
 app.get("/", (req, res) => {
   res.redirect("/contacts");
@@ -142,7 +147,7 @@ app.post(
   (req, res) => {
     req.session.contactData.push({ ...req.body });
 
-    req.flash("success", "Newe contact added to list!");
+    req.flash("success", "New contact added to list!");
     res.redirect("/contacts");
   }
 );
