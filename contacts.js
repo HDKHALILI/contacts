@@ -132,8 +132,9 @@ app.post(
   [
     validateName("firstName", "First"),
     validateName("lastName", "Last"),
-    body().custom((_, { req }) => {
-      const { firstName, lastName } = req.body;
+    body().custom((contact, { req }) => {
+      console.log("value", contact);
+      const { firstName, lastName } = contact;
       const fullName = getFullName(firstName, lastName);
       const contacts = req.session.contactData;
       if (findDuplicate(fullName, contacts)) {
@@ -152,7 +153,6 @@ app.post(
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    console.log("errors", errors);
     if (!errors.isEmpty()) {
       errors.array().forEach(error => req.flash("error", error.msg));
       res.render("new-contact", {
