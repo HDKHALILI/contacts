@@ -50,6 +50,16 @@ const clone = object => {
   return JSON.parse(JSON.stringify(object));
 };
 
+const getFullName = (firstName, lastName) => {
+  return `${firstName.toLowerCase()} ${lastName.toLowerCase()}`;
+};
+
+const findDuplicate = (fullName, contacts) => {
+  return contacts.find(contact => {
+    return fullName === getFullName(contact.firstName, contact.lastName);
+  });
+};
+
 app.set("views", "./views");
 app.set("view engine", "pug");
 
@@ -86,6 +96,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Routes
 app.get("/", (req, res) => {
   res.redirect("/contacts");
 });
@@ -118,29 +129,15 @@ const validateName = (name, whichName) => {
 
 app.post(
   "/contacts/new",
-  (req, res, next) => {
-    req.body.fullName = [];
-    next();
-  },
   [
     validateName("firstName", "First"),
     validateName("lastName", "Last"),
-
-    body(["firstName", "lastName"]).custom((name, { req }) => {
-      req.body.fullName.push(name);
-      return true;
-    }),
-    body("fullName").custom((fullName, { req }) => {
+    body().custom((_, { req }) => {
+      const { firstName, lastName } = req.body;
+      const fullName = getFullName(firstName, lastName);
       const contacts = req.session.contactData;
-      const newFullName = fullName.join(" ").toLowerCase();
-      const nameFound = contacts.find(({ firstName, lastName }) => {
-        const existingFullName = `${firstName.toLowerCase()} ${lastName.toLowerCase()}`;
-
-        return existingFullName === newFullName;
-      });
-
-      if (nameFound) {
-        throw new Error("Contact already exists.");
+      if (findDuplicate(fullName, contacts)) {
+        throw new Error("Contact Already exists.");
       }
 
       return true;
@@ -155,6 +152,7 @@ app.post(
   ],
   (req, res, next) => {
     const errors = validationResult(req);
+    console.log("errors", errors);
     if (!errors.isEmpty()) {
       errors.array().forEach(error => req.flash("error", error.msg));
       res.render("new-contact", {
