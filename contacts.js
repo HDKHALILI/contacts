@@ -127,9 +127,8 @@ const validateName = (name, whichName) => {
     );
 };
 
-app.post(
-  "/contacts/new",
-  [
+const validationRules = () => {
+  return [
     validateName("firstName", "First"),
     validateName("lastName", "Last"),
     body().custom((contact, { req }) => {
@@ -150,28 +149,30 @@ app.post(
       .bail()
       .matches(/^\d\d\d-\d\d\d-\d\d\d\d$/)
       .withMessage("Invalid phone number format. Use ###-###-####"),
-  ],
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      errors.array().forEach(error => req.flash("error", error.msg));
-      res.render("new-contact", {
-        flash: req.flash(),
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        phoneNumber: req.body.phoneNumber,
-      });
-    } else {
-      next();
-    }
-  },
-  (req, res) => {
-    req.session.contactData.push({ ...req.body });
+  ];
+};
 
-    req.flash("success", "New contact added to list!");
-    res.redirect("/contacts");
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    errors.array().forEach(error => req.flash("error", error.msg));
+    res.render("new-contact", {
+      flash: req.flash(),
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      phoneNumber: req.body.phoneNumber,
+    });
+  } else {
+    next();
   }
-);
+};
+
+app.post("/contacts/new", validationRules(), validate, (req, res) => {
+  req.session.contactData.push({ ...req.body });
+
+  req.flash("success", "New contact added to list!");
+  res.redirect("/contacts");
+});
 
 app.listen(3000, "localhost", () => {
   console.log("Listening to port 3000");
