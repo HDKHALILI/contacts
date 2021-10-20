@@ -1,6 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
-const { body, check, validationResult } = require("express-validator");
+const { body, validationResult } = require("express-validator");
 const session = require("express-session");
 const store = require("connect-loki");
 const flash = require("express-flash");
@@ -81,7 +81,6 @@ const validationRules = () => {
     validateName("firstName", "First"),
     validateName("lastName", "Last"),
     body().custom((contact, { req }) => {
-      console.log("value", contact);
       const { firstName, lastName } = contact;
       const fullName = getFullName(firstName, lastName);
       const contacts = req.session.contactData;
@@ -107,9 +106,7 @@ const validate = (req, res, next) => {
     errors.array().forEach(error => req.flash("error", error.msg));
     res.render("new-contact", {
       flash: req.flash(),
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      phoneNumber: req.body.phoneNumber,
+      ...req.body,
     });
   } else {
     next();
