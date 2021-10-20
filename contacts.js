@@ -60,57 +60,6 @@ const findDuplicate = (fullName, contacts) => {
   });
 };
 
-app.set("views", "./views");
-app.set("view engine", "pug");
-
-app.use(express.static("public"));
-// tells express to expect form data in URL-encoded format.
-app.use(express.urlencoded({ extended: false }));
-app.use(morgan("common"));
-app.use(
-  session({
-    cookie: {
-      httpOnly: true,
-      maxAge: 31 * 24 * 60 * 60 * 1000, // 31 days in milliseconds
-      path: "/",
-      secure: false,
-    },
-    name: "launch-school-contacts-manager-session-id",
-    resave: false,
-    saveUninitialized: true,
-    secret: "this is not very secure",
-    store: new LokiStore({}),
-  })
-);
-app.use(flash());
-app.use((req, res, next) => {
-  if (!("contactData" in req.session)) {
-    req.session.contactData = clone(contactData);
-  }
-
-  next();
-});
-app.use((req, res, next) => {
-  res.locals.flash = req.session.flash;
-  delete req.session.flash;
-  next();
-});
-
-// Routes
-app.get("/", (req, res) => {
-  res.redirect("/contacts");
-});
-
-app.get("/contacts", (req, res) => {
-  res.render("contacts", {
-    contacts: sortContacts(req.session.contactData),
-  });
-});
-
-app.get("/contacts/new", (req, res) => {
-  res.render("new-contact");
-});
-
 const validateName = (name, whichName) => {
   return body(name)
     .trim()
@@ -166,6 +115,57 @@ const validate = (req, res, next) => {
     next();
   }
 };
+
+app.set("views", "./views");
+app.set("view engine", "pug");
+
+app.use(express.static("public"));
+// tells express to expect form data in URL-encoded format.
+app.use(express.urlencoded({ extended: false }));
+app.use(morgan("common"));
+app.use(
+  session({
+    cookie: {
+      httpOnly: true,
+      maxAge: 31 * 24 * 60 * 60 * 1000, // 31 days in milliseconds
+      path: "/",
+      secure: false,
+    },
+    name: "launch-school-contacts-manager-session-id",
+    resave: false,
+    saveUninitialized: true,
+    secret: "this is not very secure",
+    store: new LokiStore({}),
+  })
+);
+app.use(flash());
+app.use((req, res, next) => {
+  if (!("contactData" in req.session)) {
+    req.session.contactData = clone(contactData);
+  }
+
+  next();
+});
+app.use((req, res, next) => {
+  res.locals.flash = req.session.flash;
+  delete req.session.flash;
+  next();
+});
+
+// Routes
+app.get("/", (req, res) => {
+  res.redirect("/contacts");
+});
+
+app.get("/contacts", (req, res) => {
+  res.render("contacts", {
+    contacts: sortContacts(req.session.contactData),
+  });
+});
+
+app.get("/contacts/new", (req, res) => {
+  res.render("new-contact");
+});
 
 app.post("/contacts/new", validationRules(), validate, (req, res) => {
   req.session.contactData.push({ ...req.body });
